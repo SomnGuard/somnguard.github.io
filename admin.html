@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SOMNGUARD — Panel de Administración</title>
+  <link rel="stylesheet" href="./css/admin.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <a class="sr-only" href="#main-content">Saltar al contenido</a>
+
+    <header class="topbar">
+      <div class="topbar-start">
+        <button class="icon-btn" data-mobile-nav onclick="SG.toggleMobileNav(true)" aria-label="Abrir navegación">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+        <button class="icon-btn desktop-collapse" onclick="SG.toggleCollapse()" aria-label="Colapsar navegación">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
+        </button>
+        <a class="brand" href="#/admin/dashboard">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 100 112" fill="none" style="width:40px;height:45px">
+              <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+              <rect x="26" y="38" width="48" height="24" rx="12" ry="12" fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+              <circle cx="50" cy="50" r="9" fill="#00C8C8"></circle>
+              <path d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>SOMNGUARD</strong>
+            <span>Panel de administración</span>
+          </span>
+        </a>
+      </div>
+      <div class="topbar-end">
+        <div class="role-switch" title="Cambiar vista de rol">
+          <button id="roleAdmin" class="role-btn active" onclick="SG.setRole('admin')">Admin</button>
+          <button id="roleUser" class="role-btn" onclick="SG.setRole('user')">User</button>
+        </div>
+        <button class="theme-btn" onclick="SG.toggleTheme()" title="Modo oscuro/claro">◐</button>
+        <div style="position:relative">
+          <button class="icon-btn bell" id="notifBtn" onclick="SG.toggleNotif(event)" aria-label="Notificaciones">
+            <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10.5 20a1.5 1.5 0 0 0 3 0"></path></svg>
+            <span class="bell-dot" id="bellDot">3</span>
+          </button>
+          <div id="notifPanel" class="dropdown hidden" style="width:340px" role="dialog" aria-label="Notificaciones"></div>
+        </div>
+        <div class="user-menu-wrap">
+          <button class="user-trigger" onclick="SG.toggleUserMenu(event)" aria-expanded="false" id="userTrigger">
+            <span class="user-avatar" id="userAvatar">AD</span>
+            <span class="user-copy"><strong id="userName">Admin SomnGuard</strong><span id="userMeta">Administrador · acceso total</span></span>
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+          <div class="dropdown hidden" id="userMenu"></div>
+        </div>
+      </div>
+    </header>
+
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="nav-group" data-group="dashboard" data-has-badge="true">
+        <p class="sidebar-label">Dashboard</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Dashboard" aria-label="Módulo Dashboard">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/dashboard" href="#/admin/dashboard"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg><span>Dashboard</span><em class="nav-badge danger" data-badge="crit">2</em></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="security" data-has-badge="true">
+        <p class="sidebar-label">Seguridad</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Seguridad" aria-label="Módulo Seguridad">
+          <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/users" href="#/admin/users"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4.5-6.2"></path></svg><span>Usuarios</span><em class="nav-badge" data-badge="users">6</em></a>
+          <a class="nav-link" data-nav="/admin/roles" href="#/admin/roles"><svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg><span>Roles</span></a>
+          <a class="nav-link" data-nav="/admin/permissions" href="#/admin/permissions"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path></svg><span>Permisos · matriz</span></a>
+          <a class="nav-link" data-nav="/admin/sessions" href="#/admin/sessions"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg><span>Sesiones</span></a>
+          <a class="nav-link" data-nav="/admin/password-resets" href="#/admin/password-resets"><svg viewBox="0 0 24 24"><path d="M12 3v10M12 17.5v.5"></path><circle cx="12" cy="12" r="9"></circle></svg><span>Resets password</span></a>
+          <a class="nav-link" data-nav="/admin/email-verifications" href="#/admin/email-verifications"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg><span>Verificaciones email</span></a>
+          <a class="nav-link" data-nav="/admin/login-audit" href="#/admin/login-audit"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"></path></svg><span>Auditoría login</span><em class="nav-badge warn" data-badge="fails">3</em></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="catalog" data-has-badge="true">
+        <p class="sidebar-label">Parametrización</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Parametrización" aria-label="Módulo Parametrización">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/catalog/event-categories" href="#/admin/catalog/event-categories"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"></rect><rect x="13" y="13" width="8" height="8" rx="1"></rect></svg><span>Categorías</span></a>
+          <a class="nav-link" data-nav="/admin/catalog/severities" href="#/admin/catalog/severities"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"></path></svg><span>Severidades</span></a>
+          <a class="nav-link" data-nav="/admin/catalog/media-types" href="#/admin/catalog/media-types"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="m5 18 5-5 3 3 3-3 3 3"></path></svg><span>Tipos media</span></a>
+          <a class="nav-link" data-nav="/admin/catalog/sound-patterns" href="#/admin/catalog/sound-patterns"><svg viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"></path></svg><span>Patrones sonido</span></a>
+          <a class="nav-link" data-nav="/admin/catalog/event-types" href="#/admin/catalog/event-types"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M8 9h8M8 13h8M8 17h5"></path></svg><span>Tipos evento</span><em class="nav-badge warn">1</em></a>
+          <a class="nav-link" data-nav="/admin/catalog/statuses" href="#/admin/catalog/statuses"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="M8 7l8 10"></path></svg><span>Estados</span></a>
+          <a class="nav-link" data-nav="/admin/catalog/transitions" href="#/admin/catalog/transitions"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.5"></circle><circle cx="19" cy="12" r="2.5"></circle><path d="M7.5 12h9M15 9.5 17.5 12 15 14.5"></path></svg><span>Transiciones</span></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="devices" data-has-badge="true">
+        <p class="sidebar-label">Dispositivos</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Dispositivos" aria-label="Módulo Dispositivos">
+          <svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/devices" href="#/admin/devices"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg><span>Dispositivos</span><em class="nav-badge warn" data-badge="offline">1</em></a>
+          <a class="nav-link" data-nav="/admin/assignments" href="#/admin/assignments"><svg viewBox="0 0 24 24"><path d="M8 7h13M8 12h13M8 17h13"></path><circle cx="4" cy="7" r="1.3"></circle><circle cx="4" cy="12" r="1.3"></circle><circle cx="4" cy="17" r="1.3"></circle></svg><span>Asignaciones</span></a>
+          <a class="nav-link" data-nav="/admin/device-configs" href="#/admin/device-configs"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1A1.7 1.7 0 0 0 4.6 15 1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"></path></svg><span>Configs</span></a>
+          <a class="nav-link" data-nav="/admin/provisioning-tokens" href="#/admin/provisioning-tokens"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"></path></svg><span>Tokens provisioning</span><em class="nav-badge">2</em></a>
+          <a class="nav-link" data-nav="/admin/provisioning-audit" href="#/admin/provisioning-audit"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"></path></svg><span>Audit provisioning</span></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="telemetry">
+        <p class="sidebar-label">Telemetría</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Telemetría" aria-label="Módulo Telemetría">
+          <svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/events" href="#/admin/events"><svg viewBox="0 0 24 24"><path d="M3 12h4l2-6 4 12 2-6h6"></path></svg><span>Eventos</span></a>
+          <a class="nav-link" data-nav="/admin/evidence" href="#/admin/evidence"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="10" r="1.6"></circle></svg><span>Evidencias</span></a>
+          <a class="nav-link" data-nav="/admin/alerts" href="#/admin/alerts"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10.5 20a1.5 1.5 0 0 0 3 0"></path></svg><span>Alertas edge</span></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="monitoring" data-has-badge="true">
+        <p class="sidebar-label">Monitoreo</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Monitoreo" aria-label="Módulo Monitoreo">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v9H8l-4 4V6Z"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/notifications" href="#/admin/notifications"><svg viewBox="0 0 24 24"><path d="M4 6h16v9H8l-4 4V6Z"></path></svg><span>Notificaciones</span><em class="nav-badge danger">1</em></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="analytics">
+        <p class="sidebar-label">Analítica</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Analítica" aria-label="Módulo Analítica">
+          <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/analytics-timeline" href="#/admin/analytics-timeline"><svg viewBox="0 0 24 24"><path d="M4 18V8M10 18V4M16 18v-8M22 18H2"></path></svg><span>Timeline</span></a>
+          <a class="nav-link" data-nav="/admin/analytics-metrics" href="#/admin/analytics-metrics"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path></svg><span>Métricas</span></a>
+          <a class="nav-link" data-nav="/admin/reports" href="#/admin/reports"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"></path><path d="M9 12h7M9 16h7"></path></svg><span>Reportes + IA</span></a>
+        </nav>
+      </div>
+      <div class="nav-group" data-group="audit-ops">
+        <p class="sidebar-label">Auditoría &amp; Ops</p>
+        <button class="nav-group-toggle" onclick="SG.toggleNavGroup(this)" title="Auditoría &amp; Ops" aria-label="Módulo Auditoría y Ops">
+          <svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"></path></svg>
+        </button>
+        <nav class="nav">
+          <a class="nav-link" data-nav="/admin/audit" href="#/admin/audit"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"></path></svg><span>Auditoría global</span></a>
+          <a class="nav-link" data-nav="/admin/observability" href="#/admin/observability"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="2"></circle></svg><span>Observabilidad</span></a>
+          <a class="nav-link" data-nav="/admin/settings" href="#/admin/settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path></svg><span>Settings</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-foot" id="sidebarFoot">Administrador</div>
+    </aside>
+    <button class="sidebar-backdrop" aria-label="Cerrar navegación" onclick="SG.toggleMobileNav(false)"></button>
+
+    <main class="main-area" id="main-content">
+      <div class="content" id="app"><!-- render por JS --></div>
+      <footer class="app-foot" id="appFoot"></footer>
+    </main>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+  <div id="drawer-root"></div>
+  <div id="cmdk-root"></div>
+
+  <script src="./js/seed.js"></script>
+  <script src="./js/admin-core.js"></script>
+  <script src="./js/views-dashboard.js"></script>
+  <script src="./js/views-security.js"></script>
+  <script src="./js/views-catalog.js"></script>
+  <script src="./js/views-devices.js"></script>
+  <script src="./js/views-telemetry.js"></script>
+  <script src="./js/views-ops.js"></script>
+</body>
+</html>

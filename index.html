@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SOMNGUARD - Tu seguridad al volante empieza aquí. Monitoreo de somnolencia en tiempo real." />
+    <title>SOMNGUARD - Tu seguridad al volante</title>
+    <link rel="stylesheet" href="./css/styles.css"/>
+</head>
+<body>
+    <!-- Header (portal: logo estático; mockup conserva Ir a Admin sin consumo) -->
+    <header class="header">
+        <div class="logo-header">
+            <svg viewBox="0 0 100 112" fill="none" aria-hidden="true">
+                <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+                <rect x="26" y="38" width="48" height="24" rx="12" ry="12" fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+                <circle cx="50" cy="50" r="9" fill="#00C8C8"></circle>
+                <path d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+            </svg>
+            <span class="logo-header-text">SOMNGUARD</span>
+        </div>
+
+        <div class="nav-buttons" id="authButtons">
+            <button class="btn-nav" onclick="openModal('login')">Iniciar sesión</button>
+            <button class="btn-nav" onclick="openModal('register')">Registrarse</button>
+        </div>
+
+        <div class="nav-buttons hidden" id="loggedButtons">
+            <a href="./admin.html" class="btn-nav" style="text-decoration:none;display:inline-flex;align-items:center">Ir a Admin</a>
+            <button class="btn-nav" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <!-- Hero Section (portal: id heroLogo solo animado, header estático) -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-left">
+                <h1 class="hero-title">
+                    Tu seguridad al volante
+                    <span class="accent">empieza aquí</span>
+                </h1>
+                <p class="hero-subtitle">
+                    SOMNGUARD monitorea tu estado de alerta en tiempo real.
+                    No permitas que el cansancio tome el control. Descarga la app y mantente seguro.
+                </p>
+                <div class="download-buttons">
+                    <button class="btn-download" onclick="downloadApp()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M17.523 15.341c-.6-.583-.923-1.337-.923-2.141s.323-1.558.923-2.141c1.123-1.086 1.475-2.74.84-4.177C17.727 5.32 16.198 4.278 14.5 4c-2.012-.328-3.875.72-4.656 2.62-.78 1.9-.23 4.084 1.376 5.46.6.52.96 1.237.96 2.02s-.36 1.5-.96 2.02c-1.607 1.377-2.157 3.56-1.376 5.46.78 1.9 2.643 2.948 4.656 2.62 1.698-.278 3.227-1.32 3.863-2.883.636-1.437.284-3.09-.84-4.176zM7 12c-.552 0-1-.448-1-1s.448-1 1-1 1 .448 1 1-.448 1-1 1z"></path>
+                        </svg>
+                        Descargar para Android
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-right">
+                <div class="logo-container">
+                    <svg id="heroLogo" viewBox="0 0 100 112" fill="none" style="width: 200px; height: 224px;" aria-hidden="true">
+                        <defs>
+                            <clipPath id="eyeClip">
+                                <rect id="pillClip" x="26" y="38" width="48" height="24" rx="12" ry="12"></rect>
+                            </clipPath>
+                        </defs>
+                        <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" 
+                              fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+                        <rect id="pill" x="26" y="38" width="48" height="24" rx="12" ry="12" 
+                              fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+                        <circle id="pupil" cx="50" cy="50" r="9" fill="#00C8C8" clip-path="url(#eyeClip)"></circle>
+                        <path id="mouth" d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" 
+                              stroke-linecap="round" fill="none"></path>
+                    </svg>
+                    <div class="brand-name">SOMNGUARD</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard (inline como portal/src/features/dashboard, oculto hasta login salvo redirect a admin) -->
+    <section id="dashboardSection" class="dashboard hidden">
+        <div class="dashboard-container">
+            <aside class="dashboard-sidebar">
+                <div class="dashboard-user">
+                    <h2 id="dashboardUserName">Bienvenido</h2>
+                    <p id="dashboardUserEmail">usuario@somnguard.com</p>
+                </div>
+            </aside>
+
+            <div class="dashboard-panel">
+                <h2 style="color: var(--text); font-size: 28px;">Panel principal</h2>
+                <p style="color: var(--text-muted); margin-top: 8px;">
+                    Aquí va tu contenido principal después de iniciar sesión.
+                </p>
+
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <h3>Estado del sistema</h3>
+                        <p>Conectado y listo para monitorear la somnolencia.</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Alertas activas</h3>
+                        <p>Sin alertas pendientes por ahora.</p>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>Sesión</h3>
+                        <p>Acceso autorizado correctamente.</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-stats" id="dashboardStatsSection">
+                    <div class="summary-row">
+                        <div class="summary-item">
+                            <span>Somnolencia promedio</span>
+                            <strong id="avgSleep">--%</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Alertas del mes</span>
+                            <strong id="monthAlerts">--</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Eventos registrados</span>
+                            <strong id="sessionCount">--</strong>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stats-card">
+                            <h3>Somnolencia semanal</h3>
+                            <p>Promedio diario de somnolencia detectada durante los últimos 7 días.</p>
+                            <div class="chart-wrap">
+                                <canvas id="somnolenceChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                        <div class="stats-card">
+                            <h3>Alertas del mes</h3>
+                            <p>Resumen de alertas acumuladas en las últimas semanas.</p>
+                            <div class="chart-wrap">
+                                <canvas id="alertsChart" class="chart-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="history-card">
+                        <h3>Historial reciente</h3>
+                        <p>Últimos eventos generados por el monitoreo web.</p>
+                        <div class="history-list" id="historyList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Login (portal/src/features/auth/ui/AuthModals — LoginModal) -->
+    <div id="loginModal" class="modal" role="dialog" aria-modal="true" aria-label="Iniciar sesión">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('login')" aria-label="Cerrar modal">×</button>
+            <div class="modal-logo">
+                <svg viewBox="0 0 100 112" fill="none" style="width: 80px; height: 90px; margin: 0 auto; display:block" aria-hidden="true">
+                    <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+                    <rect x="26" y="38" width="48" height="24" rx="12" ry="12" fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+                    <circle cx="50" cy="50" r="9" fill="#00C8C8"></circle>
+                    <path d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+                </svg>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+                <div class="demo-hint">
+                    <strong>Demo mockup:</strong> admin@somnguard.com / 1234
+                    <button type="button" onclick="fillDemoCredentials()" style="margin-top:8px;width:100%;padding:10px;border:2px solid var(--accent);background:transparent;color:var(--accent);border-radius:11px;font-weight:700;cursor:pointer;font-size:13px">Usar credenciales demo</button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">Correo electrónico</label>
+                    <input type="email" class="form-input" id="loginEmail" required autocomplete="email" placeholder="usuario@somnguard.com" value="admin@somnguard.com">
+                    <div class="field-error" id="loginEmailError" aria-live="polite"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <div class="password-wrap">
+                        <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" placeholder="••••••••" value="1234">
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" aria-label="Mostrar contraseña">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                        </button>
+                    </div>
+                    <div class="field-error" id="loginPasswordError" aria-live="polite"></div>
+                </div>
+
+                <div id="loginError" class="form-error" style="display: none;" role="alert"></div>
+                <button type="submit" class="btn-submit" id="loginBtn">Iniciar sesión</button>
+            </form>
+
+            <div class="modal-links">
+                <p>
+                    <span class="modal-link">¿No tienes cuenta?</span>
+                    <button class="modal-link accent" onclick="switchModal('login', 'register')">Regístrate</button>
+                </p>
+                <p style="margin-top: 10px;">
+                    <button class="modal-link accent" onclick="switchModal('login', 'forgot')">¿Olvidaste tu contraseña?</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Register (portal: 6 campos + phone + strength + toggle) -->
+    <div id="registerModal" class="modal" role="dialog" aria-modal="true" aria-label="Registrarse">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('register')" aria-label="Cerrar modal">×</button>
+            <div class="modal-logo">
+                <svg viewBox="0 0 100 112" fill="none" style="width: 80px; height: 90px; margin: 0 auto; display:block" aria-hidden="true">
+                    <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+                    <rect x="26" y="38" width="48" height="24" rx="12" ry="12" fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+                    <circle cx="50" cy="50" r="9" fill="#00C8C8"></circle>
+                    <path d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+                </svg>
+            </div>
+
+            <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
+                <div class="register-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="registerFirstName">Nombre</label>
+                        <input type="text" class="form-input" id="registerFirstName" required autocomplete="given-name" placeholder="Ej: Susana">
+                        <div class="field-error" id="registerFirstNameError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="registerLastName">Apellido</label>
+                        <input type="text" class="form-input" id="registerLastName" required autocomplete="family-name" placeholder="Ej: Oria">
+                        <div class="field-error" id="registerLastNameError"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="registerEmail">Correo electrónico</label>
+                    <input type="email" class="form-input" id="registerEmail" required autocomplete="email" placeholder="usuario@somnguard.com">
+                    <div class="field-error" id="registerEmailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="registerPhone">Teléfono</label>
+                    <input type="tel" class="form-input" id="registerPhone" required autocomplete="tel" placeholder="Ej: +57 3001234567">
+                    <div class="field-error" id="registerPhoneError"></div>
+                    <div class="field-hint">7-15 dígitos, opcional + al inicio.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="registerPassword">Contraseña</label>
+                    <div class="password-wrap">
+                        <input type="password" class="form-input" id="registerPassword" required autocomplete="new-password" placeholder="Mín. 8 caracteres, mayúscula, número y símbolo">
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)" aria-label="Mostrar contraseña">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                        </button>
+                    </div>
+                    <div class="field-error" id="registerPasswordError"></div>
+                    <div class="strength" id="registerStrength" aria-hidden="true" style="display:none">
+                        <div class="strength-bar"><div class="strength-fill" id="registerStrengthFill"></div></div>
+                        <span class="strength-label" id="registerStrengthLabel"></span>
+                    </div>
+                    <div class="field-hint">8-20 caracteres, mayúscula, minúscula, número y símbolo, sin espacios.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="registerPasswordConfirm">Confirmar contraseña</label>
+                    <div class="password-wrap">
+                        <input type="password" class="form-input" id="registerPasswordConfirm" required autocomplete="new-password" placeholder="Repite la contraseña">
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPasswordConfirm', this)" aria-label="Mostrar contraseña">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+                        </button>
+                    </div>
+                    <div class="field-error" id="registerPasswordConfirmError"></div>
+                </div>
+
+                <div id="registerError" class="form-error" style="display: none;" role="alert"></div>
+                <button type="submit" class="btn-submit" id="registerBtn">Registrarse</button>
+            </form>
+
+            <div class="modal-links">
+                <p>
+                    <span class="modal-link">¿Ya tienes cuenta?</span>
+                    <button class="modal-link accent" onclick="switchModal('register', 'login')">Inicia sesión</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Forgot Password (portal) -->
+    <div id="forgotModal" class="modal" role="dialog" aria-modal="true" aria-label="Recuperar contraseña">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('forgot')" aria-label="Cerrar modal">×</button>
+            <div class="modal-logo">
+                <svg viewBox="0 0 100 112" fill="none" style="width: 80px; height: 90px; margin: 0 auto; display:block" aria-hidden="true">
+                    <path d="M50 5 L88 19 L88 55 C88 79 70 97 50 107 C30 97 12 79 12 55 L12 19 Z" fill="#0c1b2e" stroke="#00C8C8" stroke-width="5.5" stroke-linejoin="round"></path>
+                    <rect x="26" y="38" width="48" height="24" rx="12" ry="12" fill="#0c1b2e" stroke="#00C8C8" stroke-width="4"></rect>
+                    <circle cx="50" cy="50" r="9" fill="#00C8C8"></circle>
+                    <path d="M41 73 Q50 78 59 73" stroke="#00C8C8" stroke-width="3.5" stroke-linecap="round" fill="none"></path>
+                </svg>
+            </div>
+
+            <form id="forgotForm" onsubmit="handleForgotPassword(event)" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="forgotEmail">Correo electrónico</label>
+                    <input type="email" class="form-input" id="forgotEmail" required autocomplete="email" placeholder="usuario@somnguard.com">
+                    <div class="field-error" id="forgotEmailError"></div>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">
+                        Te enviaremos un enlace para restablecer tu contraseña
+                    </p>
+                </div>
+
+                <div id="forgotError" class="form-error" style="display: none;" role="alert"></div>
+                <div id="forgotSuccess" class="form-success" style="display: none;" role="status"></div>
+                <button type="submit" class="btn-submit" id="forgotBtn">Enviar enlace</button>
+            </form>
+
+            <div class="modal-links">
+                <p>
+                    <button class="modal-link accent" onclick="switchModal('forgot', 'login')">Volver al inicio de sesión</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (portal/src/shared/ui/Footer) -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <span class="footer-logo">SomnGuard</span>
+                <span class="footer-subtitle">Sistema de monitoreo y gestión</span>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2026 SomnGuard. Todos los derechos reservados.</span>
+                <nav class="footer-links" aria-label="Enlaces legales">
+                    <a href="#" onclick="event.preventDefault()">Política de privacidad</a>
+                    <span class="footer-sep" aria-hidden> | </span>
+                    <a href="#" onclick="event.preventDefault()">Términos y condiciones</a>
+                    <span class="footer-sep" aria-hidden> | </span>
+                    <a href="#" onclick="event.preventDefault()">Contacto</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast-root" class="toast-container" aria-live="polite"></div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>
