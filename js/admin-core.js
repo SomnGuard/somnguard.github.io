@@ -112,8 +112,52 @@ var SG = (function () {
   function strip(html) { return '<div class="stat-strip">' + html + '</div>'; }
 
   /* ---------- page frame ---------- */
+  function breadcrumbForPath(path, fallback) {
+    var entries = [
+      ['/admin/dashboard', 'dashboard', 'dashboard'],
+      ['/admin/users', 'seguridad', 'usuarios'],
+      ['/admin/roles', 'seguridad', 'roles'],
+      ['/admin/permissions', 'seguridad', 'permisos'],
+      ['/admin/sessions', 'seguridad', 'sesiones'],
+      ['/admin/password-resets', 'seguridad', 'resets-password'],
+      ['/admin/email-verifications', 'seguridad', 'verificaciones-email'],
+      ['/admin/login-audit', 'seguridad', 'auditoría-login'],
+      ['/admin/catalog/event-categories', 'parametrización', 'categorías'],
+      ['/admin/catalog/severities', 'parametrización', 'severidades'],
+      ['/admin/catalog/media-types', 'parametrización', 'tipos-media'],
+      ['/admin/catalog/sound-patterns', 'parametrización', 'patrones-sonido'],
+      ['/admin/catalog/event-types', 'parametrización', 'tipos-evento'],
+      ['/admin/catalog/statuses', 'parametrización', 'estados'],
+      ['/admin/catalog/transitions', 'parametrización', 'transiciones'],
+      ['/admin/devices', 'dispositivos', 'dispositivos'],
+      ['/admin/assignments', 'dispositivos', 'asignaciones'],
+      ['/admin/device-configs', 'dispositivos', 'configs'],
+      ['/admin/provisioning-tokens', 'dispositivos', 'tokens-provisioning'],
+      ['/admin/provisioning-audit', 'dispositivos', 'auditoría-provisioning'],
+      ['/admin/events', 'telemetría', 'eventos'],
+      ['/admin/evidence', 'telemetría', 'evidencias'],
+      ['/admin/alerts', 'telemetría', 'alertas-edge'],
+      ['/admin/notifications', 'monitoreo', 'notificaciones'],
+      ['/admin/analytics-timeline', 'analítica', 'timeline'],
+      ['/admin/analytics-metrics', 'analítica', 'métricas'],
+      ['/admin/reports', 'analítica', 'reportes'],
+      ['/admin/audit', 'auditoría-ops', 'auditoría-global'],
+      ['/admin/observability', 'auditoría-ops', 'observabilidad'],
+      ['/admin/settings', 'auditoría-ops', 'configuración']
+    ];
+    for (var i = 0; i < entries.length; i++) {
+      if (path === entries[i][0] || path.indexOf(entries[i][0] + '/') === 0) {
+        return entries[i][1] + ' / ' + entries[i][2];
+      }
+    }
+    return 'dashboard / ' + String(fallback || 'dashboard').toLowerCase();
+  }
+
   function page(crumb, title, sub, actions, bodyHtml) {
-    return '<nav class="breadcrumb">Administración / <b>' + esc(crumb) + '</b></nav>' +
+    var path = parseHash();
+    var bc = breadcrumbForPath(path, title);
+    var parts = bc.split(' / ');
+    return '<nav class="breadcrumb">' + esc(parts[0]) + ' / <b>' + esc(parts.slice(1).join(' / ')) + '</b></nav>' +
       '<header class="page-header"><div><h1>' + esc(title) + '</h1><p>' + sub + '</p></div>' +
       '<div class="page-actions">' + (actions || '') + '</div></header>' + (bodyHtml || '');
   }
@@ -164,18 +208,43 @@ var SG = (function () {
   function toggleUserMenu(e) { if (e) e.stopPropagation(); renderUserMenu(); document.getElementById('userMenu').classList.toggle('hidden'); document.getElementById('notifPanel').classList.add('hidden'); }
   function toggleNotif(e) { if (e) e.stopPropagation(); renderNotif(); document.getElementById('notifPanel').classList.toggle('hidden'); document.getElementById('userMenu').classList.add('hidden'); }
   function renderUserMenu() {
-    var n = state.role === 'admin' ? 19 : 6;
+    var isAdmin = state.role === 'admin';
+    var name = isAdmin ? 'Admin SomnGuard' : 'Laura Pineda';
+    var email = isAdmin ? 'admin@somnguard.com' : 'laura.pineda@somnguard.com';
+    var role = isAdmin ? 'Administrador' : 'Usuario';
     document.getElementById('userMenu').innerHTML =
-      '<div style="padding:10px 12px"><strong>' + (state.role === 'admin' ? 'Admin SomnGuard' : 'Laura Pineda') + '</strong>' +
-      '<div style="font-size:12px;color:var(--text-muted)">' + (state.role === 'admin' ? 'admin@somnguard.com' : 'laura.pineda@somnguard.com') + '</div>' +
-      '<div style="font-size:11px;color:var(--text-faint);margin-top:4px">' + (state.role === 'admin' ? 'Administrador · acceso total' : 'Usuario · acceso a recursos propios') + '</div></div>' +
+      '<div class="account-summary"><strong>' + name + '</strong>' +
+      '<div class="account-email">' + email + '</div>' +
+      '<div class="account-role">' + role + '</div></div>' +
       '<div class="dropdown-separator"></div>' +
-      '<a class="dropdown-item" href="#/admin/dashboard">Mi panel</a>' +
-      '<button class="dropdown-item" onclick="SG.toast(\'Sesión actualizada\')">Refrescar sesión</button>' +
-      '<button class="dropdown-item" onclick="location.href=\'./index.html\'">Cerrar sesión</button>';
-    document.getElementById('userName').textContent = state.role === 'admin' ? 'Admin SomnGuard' : 'Laura Pineda';
-    document.getElementById('userMeta').textContent = state.role === 'admin' ? 'Administrador · acceso total' : 'Usuario · acceso limitado';
-    document.getElementById('userAvatar').textContent = state.role === 'admin' ? 'AD' : 'LP';
+      '<button class="dropdown-item" onclick="SG.openAccount()"><span class="dropdown-item-icon">◉</span>Mi cuenta</button>' +
+      '<button class="dropdown-item dropdown-item-danger" onclick="SG.logout()"><span class="dropdown-item-icon">↪</span>Cerrar sesión</button>';
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userMeta').textContent = role;
+    document.getElementById('userAvatar').textContent = isAdmin ? 'AD' : 'LP';
+  }
+
+  function openAccount() {
+    var isAdmin = state.role === 'admin';
+    var name = isAdmin ? 'Admin SomnGuard' : 'Laura Pineda';
+    var email = isAdmin ? 'admin@somnguard.com' : 'laura.pineda@somnguard.com';
+    var role = isAdmin ? 'Administrador' : 'Usuario';
+    document.getElementById('userMenu').classList.add('hidden');
+    openModal(
+      '<header class="modal-header account-modal-header"><div><h2>Mi cuenta</h2><p>Información de la cuenta actual</p></div><button class="icon-btn" onclick="SG.closeModal()" aria-label="Cerrar">✕</button></header>' +
+      '<div class="modal-body account-modal-body"><div class="account-hero"><span class="user-avatar account-avatar">' + (isAdmin ? 'AD' : 'LP') + '</span><div><h3>' + name + '</h3><span>' + role + '</span></div></div>' +
+      '<dl class="account-details"><div><dt>Correo electrónico</dt><dd>' + email + '</dd></div><div><dt>Rol</dt><dd>' + role + '</dd></div></dl></div>' +
+      '<footer class="modal-footer"><button class="btn btn-secondary" onclick="SG.closeModal()">Cerrar</button></footer>'
+    );
+  }
+
+  function logout() {
+    document.getElementById('userMenu').classList.add('hidden');
+    openModal(
+      '<header class="modal-header logout-modal-header"><div><h2>Cerrar sesión</h2><p>Vas a salir del panel de administración.</p></div><button class="icon-btn" onclick="SG.closeModal()" aria-label="Cerrar">✕</button></header>' +
+      '<div class="modal-body logout-modal-body"><div class="logout-icon">↪</div><p>¿Seguro que deseas cerrar sesión?</p><span>Volverás a la pantalla de inicio.</span></div>' +
+      '<footer class="modal-footer"><button class="btn btn-secondary" onclick="SG.closeModal()">Cancelar</button><button class="btn btn-logout" onclick="location.href=\'./index.html\'">Cerrar sesión</button></footer>'
+    );
   }
   function renderNotif() {
     var fails = S.NOTIFICATIONS.filter(function (n) { return n.status === 'NOTIFICATION_FAILED'; }).length;
@@ -189,7 +258,6 @@ var SG = (function () {
     state.role = r;
     document.getElementById('roleAdmin').classList.toggle('active', r === 'admin');
     document.getElementById('roleUser').classList.toggle('active', r === 'user');
-    document.getElementById('sidebarFoot').textContent = r === 'admin' ? 'Administrador' : 'Usuario (solo propios)';
     renderUserMenu(); renderNotif(); render();
     toast(r === 'admin' ? 'Modo administrador: acceso completo' : 'Modo usuario: acceso limitado a tus propios recursos');
   }
@@ -204,7 +272,12 @@ var SG = (function () {
     }, 900);
   }
   function renderFoot() {
-    document.getElementById('appFoot').innerHTML = '<span>SomnGuard Admin</span><span>Última actualización: ' + ago(state.mvLast) + '</span>';
+    document.getElementById('appFoot').innerHTML =
+      '<span>© 2026 SomnGuard</span>' +
+      '<span>Última actualización: ' + ago(state.mvLast) + '</span>' +
+      '<a href="#" onclick="event.preventDefault()">Privacidad</a>' +
+      '<a href="#" onclick="event.preventDefault()">Términos</a>' +
+      '<a href="#" onclick="event.preventDefault()">Contacto</a>';
   }
 
   /* ---------- router §11 ---------- */
@@ -236,7 +309,8 @@ var SG = (function () {
     var path = parseHash();
     document.querySelectorAll('.sidebar .nav-link').forEach(function (a) {
       var base = a.getAttribute('data-nav');
-      a.classList.toggle('active', path === base || path.indexOf(base + '/') === 0);
+      var active = path === base || path.indexOf(base + '/') === 0;
+      a.classList.toggle('active', active);
     });
     var app = document.getElementById('app');
     var m = matchRoute(path);
@@ -315,7 +389,7 @@ var SG = (function () {
     page: page, guardBlock: guardBlock, emptyState: emptyState,
     openSearch: openSearch, closeSearch: closeSearch, searchGo: searchGo,
     toggleCollapse: toggleCollapse, toggleNavGroup: toggleNavGroup, toggleMobileNav: toggleMobileNav, toggleTheme: toggleTheme,
-    toggleUserMenu: toggleUserMenu, toggleNotif: toggleNotif, renderUserMenu: renderUserMenu, renderNotif: renderNotif,
+    toggleUserMenu: toggleUserMenu, toggleNotif: toggleNotif, renderUserMenu: renderUserMenu, renderNotif: renderNotif, openAccount: openAccount, logout: logout,
     setRole: setRole, refreshMVs: refreshMVs, renderFoot: renderFoot, render: render, parseHash: parseHash, VIEWS: {}
   };
   window.SG_VIEWS = window.SG_VIEWS || {};

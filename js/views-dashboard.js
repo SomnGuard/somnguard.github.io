@@ -13,85 +13,71 @@
     var S = SG_SEED;
     return '<div class="bars">' + S.METRICS_DAILY.map(function (m) {
       var tot = Math.max(m.total - m.critical - m.high, 0);
-      return '<div class="bar"><div class="seg" style="height:' + Math.round(m.critical / 32 * 100) + '%;background:#ef5a6c" title="critical ' + m.critical + '"></div>' +
-        '<div class="seg" style="height:' + Math.round(m.high / 32 * 100) + '%;background:#f2a154" title="high ' + m.high + '"></div>' +
-        '<div class="seg" style="height:' + Math.round(tot / 32 * 100) + '%;background:rgba(0,200,200,.55)" title="resto ' + tot + '"></div><b>' + m.date.slice(8) + '</b></div>';
+      return '<div class="bar"><div class="seg critical" style="height:' + Math.round(m.critical / 32 * 100) + '%" title="critical ' + m.critical + '"></div>' +
+        '<div class="seg high" style="height:' + Math.round(m.high / 32 * 100) + '%" title="high ' + m.high + '"></div>' +
+        '<div class="seg rest" style="height:' + Math.round(tot / 32 * 100) + '%" title="resto ' + tot + '"></div><b>' + m.date.slice(8) + '</b></div>';
     }).join('') + '</div>';
   }
 
   V.dashboard = function () {
-    var S = SG_SEED, st = SG.state;
+    var S = SG_SEED;
     var total = S.DEVICES.length;
     var activos = S.DEVICES.filter(function (d) { return d.status === 'DEVICE_ACTIVE'; }).length;
     var offline = S.DEVICES.filter(function (d) { return d.status === 'DEVICE_OFFLINE'; }).length;
-    var susp = S.DEVICES.filter(function (d) { return d.status === 'DEVICE_SUSPENDED'; }).length;
-    var stock = S.DEVICES.filter(function (d) { return !d.user; }).length;
     var evHoy = S.EVENTS.filter(function (e) { return e.occurred_at.slice(0, 10) === '2026-09-09'; });
     var crit = S.EVENTS.filter(function (e) { return e.severity === 'critical'; }).length;
     var high = S.EVENTS.filter(function (e) { return e.severity === 'high'; }).length;
     var offPct = Math.round(S.EVENTS.filter(function (e) { return e.offline; }).length / S.EVENTS.length * 100);
     var fails = S.NOTIFICATIONS.filter(function (n) { return n.status === 'NOTIFICATION_FAILED'; }).length;
-    var usersAct = S.USERS.filter(function (u) { return u.status === 'USER_ACTIVE'; }).length;
-    var pend = S.USERS.filter(function (u) { return u.status === 'USER_PENDING_VERIFICATION'; }).length;
-    var locked = S.USERS.filter(function (u) { return u.locked_until; }).length;
+    var pendingNot = S.NOTIFICATIONS.filter(function (n) { return n.status === 'NOTIFICATION_PENDING'; }).length;
     var badLog = S.AUDIT_LOGIN.filter(function (a) { return a.outcome === 'INVALID_CREDENTIALS'; }).length;
-    var tokAct = S.PROV_TOKENS.filter(function (t) { return !t.revoked_at && t.uses < t.max; }).length;
-    var noEv = S.EVENTS.filter(function (e) { return !e.evidence; }).length;
-    var totals = S.METRICS_DAILY.map(function (m) { return m.total; });
-    var crits = S.METRICS_DAILY.map(function (m) { return m.critical; });
 
-    var kpis = [
-      { t: 'Dispositivos', v: total, s: activos + ' activos · ' + offline + ' offline · ' + susp + ' susp · ' + stock + ' sin asignar', d: '↑ 12% vs ayer', up: true, sp: [4, 5, 5, 6, 6, 7, 8], h: '#/admin/devices?status=DEVICE_OFFLINE' },
-      { t: 'Eventos hoy', v: evHoy.length, s: crit + ' críticos · ' + high + ' high · ' + offPct + '% offline_sync', d: '↑ 8% vs ayer', up: true, sp: totals, h: '#/admin/events' },
-      { t: 'Alertas críticas 7d', v: crit, s: 'top EV-SOM-05 Microsueño · AS-04', d: '↓ 4% vs semana ant.', up: false, sp: crits, h: '#/admin/alerts' },
-      { t: 'Notificaciones', v: S.NOTIFICATIONS.length, s: fails + ' FAILED + retry queue', d: fails ? '↓ entrega 96%' : 'entrega 100%', up: !fails, sp: [3, 4, 2, 5, 3, 4, 5], h: '#/admin/notifications' },
-      { t: 'Usuarios', v: usersAct + ' activos', s: pend + ' pendientes · ' + locked + ' bloqueados · 1 soft-deleted', d: 'estable', up: true, sp: [6, 6, 7, 7, 8, 8, 8], h: '#/admin/users' },
-      { t: 'Seguridad 24h', v: badLog + ' fallidos', s: 'INVALID_CREDENTIALS · 1 ACCOUNT_LOCKED', d: 'pico IP 45.10.2.99', up: false, sp: [0, 1, 1, 2, 1, 2, 3], h: '#/admin/login-audit' },
-      { t: 'Provisioning', v: tokAct + ' tokens activos', s: '1 por expirar 48h · 1 revocado', d: 'cola ok', up: true, sp: [1, 2, 2, 3, 3, 2, 2], h: '#/admin/provisioning-tokens' },
-      { t: 'Evidencia / MinIO', v: noEv + ' sin evidencia', s: 'bucket somnguard-evidence · 0 errores checksum', d: 'retención 90d/5a', up: true, sp: [2, 3, 2, 4, 3, 4, 3], h: '#/admin/evidence' }
-    ];
-    var kpiHtml = '<div class="kpi-grid">' + kpis.map(function (k) {
-      return '<div class="kpi-card" onclick="location.href=\'' + k.h + '\'"><h4>' + k.t + '</h4><div class="kpi-val">' + k.v + '</div>' +
-        '<div class="kpi-sub">' + k.s + '</div><div class="kpi-sub kpi-delta ' + (k.up ? 'up' : 'down') + '">' + k.d + ' · Ver →</div>' + spark(k.sp, true) + '</div>';
-    }).join('') + '</div>';
+    var deviceStatus = '<div class="kpi-status-row">' +
+      '<span class="mini-status success"><i></i>' + activos + ' activos</span>' +
+      '<span class="mini-status danger"><i></i>' + offline + ' offline</span>' +
+      '</div>';
 
-    var tl = S.EVENTS.slice(0, 8).map(function (e) {
-      return '<div class="timeline-item"><time>' + SG.fmtDT(e.occurred_at) + '</time><span class="dot ' + e.severity + '"></span>' +
-        '<span><strong>' + e.type + '</strong> ' + SG.esc(e.type_name) + ' · <code>' + e.serial + '</code> ' + SG.sevBadge(e.severity) +
-        (e.offline ? ' <span class="chip">offline</span>' : '') + (e.evidence ? ' <span class="ev-thumb">🖼</span>' : ' <span class="chip">sin evidencia</span>') +
-        ' <a href="#/admin/events/' + e.id + '">ver</a></span></div>';
+    var kpiHtml = '<section class="kpi-grid kpi-grid-clean kpi-grid-three">' +
+      '<a class="kpi-card kpi-card-clean" href="#/admin/devices"><div class="kpi-top"><span class="kpi-label">Dispositivos</span><span class="kpi-icon teal">⌁</span></div><div class="kpi-value">' + total + '</div>' + deviceStatus + '<div class="kpi-foot"><span>Dispositivos registrados</span><strong>Ver dispositivos →</strong></div></a>' +
+      '<a class="kpi-card kpi-card-clean" href="#/admin/events"><div class="kpi-top"><span class="kpi-label">Eventos</span><span class="kpi-icon blue">◷</span></div><div class="kpi-value">' + S.EVENTS.length + '</div><div class="kpi-detail"><b>' + crit + '</b> críticos · <b>' + high + '</b> altos · <b>' + evHoy.length + '</b> hoy · <b>' + offPct + '%</b> offline sync</div><div class="kpi-foot"><span>Incluye sus alertas</span><strong>Ver eventos →</strong></div></a>' +
+      '<a class="kpi-card kpi-card-clean" href="#/admin/notifications"><div class="kpi-top"><span class="kpi-label">Notificaciones</span><span class="kpi-icon amber">↗</span></div><div class="kpi-value">' + S.NOTIFICATIONS.length + '</div><div class="kpi-detail"><b>2</b> entregadas · <b>1</b> enviado · <b>' + pendingNot + '</b> pendiente · <b>' + fails + '</b> fallida</div><div class="kpi-foot"><span class="trend-' + (fails ? 'down' : 'up') + '">' + (fails ? 'Entrega requiere atención' : 'Entrega estable') + '</span><strong>Ver cola →</strong></div></a>' +
+      '</section>';
+
+    var timeline = S.EVENTS.slice(0, 6).map(function (e) {
+      var severity = e.severity === 'critical' ? 'critical' : (e.severity === 'high' ? 'high' : 'info');
+      return '<a class="event-row" href="#/admin/events/' + e.id + '">' +
+        '<span class="event-marker ' + severity + '"></span>' +
+        '<span class="event-main"><strong>' + e.type + '</strong><span>' + SG.esc(e.type_name) + ' · <code>' + SG.esc(e.serial) + '</code></span></span>' +
+        '<span class="event-status">' + SG.sevBadge(e.severity) + (e.offline ? '<span class="chip chip-soft">offline</span>' : '') + '</span>' +
+        '<time>' + SG.fmtDT(e.occurred_at) + '</time>' +
+        '</a>';
     }).join('');
 
-    var need = S.DEVICES.filter(function (d) { return d.status === 'DEVICE_OFFLINE' || d.status === 'DEVICE_SUSPENDED' || !d.user; })
-      .map(function (d) {
-        return '<tr><td><strong><code>' + d.serial + '</code></strong></td><td>' + SG.deviceBadge(d.status) + '</td><td>' + (d.heartbeat ? SG.ago(d.heartbeat) : 'nunca') + '</td><td>' + SG.esc(d.firmware) + '</td><td>' + SG.esc(d.user || '—') + '</td>' +
-          '<td><div style="display:flex;gap:6px"><a class="btn btn-secondary btn-sm" href="#/admin/devices/' + d.id + '">Ver</a>' +
-          (SG.can('device.write') ? '<button class="btn btn-danger-subtle btn-sm" onclick="SG.confirmModal(\'Suspender ' + d.serial + '\',\'DEVICE_ACTIVE→DEVICE_SUSPENDED [admin] + motivo auditado.\',\'Suspender\',\'SG.closeModal();SG.toast(\\\'Device suspendido (simulado)\\\')\')">Suspender</button>' : '') + '</div></td></tr>';
-      }).join('');
+    var security = S.AUDIT_LOGIN.filter(function (a) { return a.outcome !== 'SUCCESS'; }).slice(0, 4).map(function (a) {
+      return '<div class="security-row"><div><span class="security-dot"></span><strong>' + SG.esc(a.email_attempted) + '</strong><span class="security-meta">' + SG.esc(a.ip) + '</span></div><div>' + SG.outcomeBadge(a.outcome) + '<span class="security-time">' + SG.fmtShort(a.attempted_at) + '</span></div></div>';
+    }).join('');
 
-    var failsHtml = S.NOTIFICATIONS.filter(function (n) { return n.status === 'NOTIFICATION_FAILED' || n.retry > 0; })
-      .map(function (n) { return '<tr><td>' + SG.esc(n.title) + '</td><td>' + SG.esc(n.user) + '</td><td><code>' + n.channel + '</code></td><td>retry ' + n.retry + '/3</td><td style="color:#ffa9b3">' + SG.esc(n.error || '—') + '</td><td><button class="btn btn-secondary btn-sm" onclick="SG.toast(\'Reintento ' + n.id + ' (retry++ exponencial, sim.)\')">Reintentar</button></td></tr>'; }).join('');
 
-    var suspHtml = S.AUDIT_LOGIN.filter(function (a) { return a.outcome !== 'SUCCESS'; }).slice(0, 4)
-      .map(function (a) { return '<tr><td><strong>' + SG.esc(a.email_attempted) + '</strong></td><td><code>' + a.ip + '</code></td><td>' + SG.outcomeBadge(a.outcome) + '</td><td>' + SG.fmtDT(a.attempted_at) + '</td><td><a class="btn btn-secondary btn-sm" href="#/admin/login-audit">Ver audit</a></td></tr>'; }).join('');
+    var categoryRows = [
+      ['Somnolencia', 45, 'red'],
+      ['Distracción', 30, 'amber'],
+      ['Sistema', 18, 'blue'],
+      ['Cinturón', 7, 'green']
+    ].map(function (r) {
+      return '<div class="distribution-row"><div class="distribution-head"><span>' + r[0] + '</span><strong>' + r[1] + '%</strong></div><div class="distribution-track"><i class="' + r[2] + '" style="width:' + r[1] + '%"></i></div></div>';
+    }).join('');
 
-    return SG.page('Dashboard', 'Dashboard Admin', 'Salud de flota, riesgo y fallos en 10 segundos. ' + SG.permChip('analytics.read'),
-      '<select onchange="SG.state.dashRange=this.value;SG.render()" title="Rango"><option>Hoy</option><option selected>7d</option><option>30d</option><option>90d</option></select>' +
-      '<button class="btn btn-secondary btn-sm" onclick="SG.refreshMVs()">⟳ Actualizar</button>' +
-      '<button class="btn btn-secondary btn-sm" onclick="SG.exportCSV(\'dashboard-kpis.csv\',SG_SEED.METRICS_DAILY)">Exportar CSV</button>',
-      SG.tech('Ficha técnica', 'Fuentes: <code>v_metrics_daily</code> + <code>v_event_timeline</code> + heartbeat + notification + audit_login · pg_cron 5min/1h · p95 &lt;500ms @10k.') +
-      (offline / total > 0.2 ? '<div class="alert alert-critical">Se detectó una caída masiva de conectividad: más del 20% de la flota está sin heartbeat.</div>' : '') +
+    return SG.page('Dashboard', 'Dashboard', 'Resumen operativo de dispositivos, eventos y alertas.', '',
+      (offline / total > 0.2 ? '<div class="alert alert-critical dashboard-alert"><span class="alert-dot"></span><div><strong>Conectividad degradada</strong><span>' + offline + ' de ' + total + ' dispositivos están offline.</span></div><a href="#/admin/devices?status=DEVICE_OFFLINE">Revisar dispositivos →</a></div>' : '') +
       kpiHtml +
-      '<div class="charts-grid"><div class="chart-card"><h3>Serie 7d apilada por severity</h3><p>v_metrics_daily · tooltip fecha/total/critical/high · Export PNG/CSV</p>' + bars30() +
-      '<div style="display:flex;gap:8px;font-size:12px;color:var(--text-muted)"><span>■ critical</span><span>■ high</span><span>■ resto</span></div></div>' +
-      '<div class="chart-card"><h3>Donut por categoría</h3><p>SOMNOLENCE / DISTRACTION / SEATBELT / SYSTEM</p>' +
-      [['SOMNOLENCE', 45, '#ef5a6c'], ['DISTRACTION', 30, '#f2a154'], ['SYSTEM', 18, '#6c90f0'], ['SEATBELT', 7, '#45c397']].map(function (r) {
-        return '<div class="donut-row"><span style="min-width:110px">' + r[0] + '</span><span class="track"><i style="width:' + r[1] + '%;background:' + r[2] + '"></i></span><b>' + r[1] + '%</b></div>';
-      }).join('') + '<h3 style="margin-top:12px">Top event_types</h3><p>EV-SOM-05 ×4 · EV-DIS-02 ×2 · EV-SOM-02 ×2</p></div></div>' +
-      '<div class="panel"><div class="panel-header"><div><h2 class="panel-title">Timeline reciente (v_event_timeline)</h2><p class="panel-subtitle">Últimos eventos occurred_at DESC · click abre drawer</p></div><a class="btn btn-secondary btn-sm" href="#/admin/events">Ver todos</a></div><div class="timeline">' + tl + '</div></div>' +
-      '<div class="charts-grid" style="margin-top:14px"><div class="chart-card"><h3>Devices que necesitan atención</h3><p>offline &gt;5min · stock sin reclamar · firmware desactualizado</p><div class="data-table-wrap"><table class="data-table"><thead><tr><th>serial</th><th>status</th><th>heartbeat</th><th>fw</th><th>user</th><th></th></tr></thead><tbody>' + need + '</tbody></table></div></div>' +
-      '<div class="chart-card"><h3>Notificaciones fallidas</h3><p>FAILED + retry queue</p><div class="data-table-wrap"><table class="data-table"><thead><tr><th>título</th><th>user</th><th>ch</th><th>retry</th><th>error</th><th></th></tr></thead><tbody>' + (failsHtml || '<tr><td colspan="6">Sin fallos 🎉</td></tr>') + '</tbody></table></div>' +
-      '<h3 style="margin-top:12px">Logins sospechosos</h3><div class="data-table-wrap"><table class="data-table"><thead><tr><th>email</th><th>IP</th><th>outcome</th><th>cuándo</th><th></th></tr></thead><tbody>' + suspHtml + '</tbody></table></div>' +
-      '<div class="alert alert-warning" style="margin:10px 0 0">Aumento de intentos de acceso fallidos desde <code>45.10.2.99</code> — posible ataque de fuerza bruta. <button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="SG.toast(\'IP bloqueada\')">Bloquear IP</button></div></div></div>');
+      '<section class="dashboard-grid dashboard-grid-top">' +
+        '<div class="chart-card dashboard-card chart-card-large"><div class="section-head"><div><h2>Actividad de eventos</h2><p>Eventos registrados durante los últimos 7 días.</p></div><a href="#/admin/analytics-metrics">Ver detalle →</a></div>' + bars30() + '<div class="chart-legend"><span><i class="legend-box critical"></i>Crítico</span><span><i class="legend-box high"></i>High</span><span><i class="legend-box rest"></i>Resto</span></div></div>' +
+        '<div class="chart-card dashboard-card"><div class="section-head"><div><h2>Distribución</h2><p>Eventos por categoría.</p></div></div>' + categoryRows + '<div class="distribution-total"><span>Total analizado</span><strong>' + S.EVENTS.length + '</strong></div></div>' +
+      '</section>' +
+      '<section class="dashboard-grid dashboard-grid-middle">' +
+        '<div class="panel dashboard-panel"><div class="panel-header dashboard-panel-header"><div><h2 class="panel-title">Eventos recientes</h2><p class="panel-subtitle">Últimos eventos registrados</p></div><a class="btn btn-secondary btn-sm" href="#/admin/events">Ver todos</a></div><div class="event-list">' + timeline + '</div></div>' +
+        '<div class="panel dashboard-panel"><div class="panel-header dashboard-panel-header"><div><h2 class="panel-title">Seguridad · 24h</h2><p class="panel-subtitle">Intentos de acceso no exitosos</p></div><a class="btn btn-secondary btn-sm" href="#/admin/login-audit">Auditoría</a></div><div class="security-list">' + (security || '<div class="empty-inline">Sin eventos de seguridad.</div>') + '</div><div class="security-summary"><span><strong>' + badLog + '</strong> credenciales inválidas</span><span>IP con mayor actividad: <code>45.10.2.99</code></span></div></div>' +
+      '</section>' +
+      '<div class="dashboard-footnote"><span>Datos actualizados ' + SG.ago(SG.state.mvLast) + '</span><a href="#/admin/evidence">Gestionar evidencia →</a></div>');
   };
 })();
